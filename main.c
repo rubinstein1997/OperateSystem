@@ -13,6 +13,9 @@ typedef struct node {
     int task;
     int parent;
     int sub;
+    int ts;
+    int te;
+    int flag;
 
     struct node* next;
 }node;
@@ -25,6 +28,9 @@ node* create (int number) {
         printf("Error creating a new node.\n");
         exit(0);
     }
+    new_node->flag = 0;
+    new_node->ts = 0;
+    new_node->te = 0;
     new_node->id = number;
     new_node->next = NULL;
 
@@ -91,6 +97,9 @@ void Create_Process(node* EmptyListHead, node* ReadyListHead) {
     empty_cursor->name = name;
     empty_cursor->status = status;
     empty_cursor->task = task;
+    empty_cursor->flag = 0;
+    empty_cursor->ts = 0;
+    empty_cursor->te = 0;
     empty_cursor->next = NULL;
     printf("name:%c  number:%d status:%d task:%d\n",empty_cursor->name,empty_cursor->id,empty_cursor->status,empty_cursor->task);
 
@@ -105,6 +114,8 @@ void Create_Process(node* EmptyListHead, node* ReadyListHead) {
 void dispatch(node* EmptyListHead,node* ReadyListHead) {
     //time that all process already run
     int time = 0;
+    int sum = 0;
+    int processnumber = 0;
 
     node* empty_cursor = EmptyListHead->next;
     node* first_cursor = ReadyListHead->next;
@@ -115,6 +126,11 @@ void dispatch(node* EmptyListHead,node* ReadyListHead) {
 
         //task > TIME_SLICE ,continue
         if(first_cursor->task > 4) {
+            if(first_cursor->flag == 0) {
+                first_cursor->flag = 1;
+                first_cursor->ts = time;
+                processnumber ++;
+            }
             first_cursor->task -= 4;
             time += 4;
             printf("id: %c time: %d task:%d\n",first_cursor->name,time,first_cursor->task);
@@ -129,8 +145,18 @@ void dispatch(node* EmptyListHead,node* ReadyListHead) {
             }
         }
         else{  //task <= TIME_SLICE, so the element that first_cursor point need to be transferred from the Ready_List to Empty_List
+            if(first_cursor->flag == 0) {
+                first_cursor->flag = 1;
+                first_cursor->ts = time;
+                processnumber ++;
+            }
             time += first_cursor->task;
-            printf("id: %c time: %d task:0\n",first_cursor->name,time);
+            first_cursor->te = time;
+            sum += (first_cursor->te - first_cursor->ts);
+
+            printf("id: %c time: %d task:0",first_cursor->name,time);
+            printf(" process finish : start %d end %d time: %d \n",first_cursor->ts,first_cursor->te,first_cursor->te-first_cursor->ts);
+
 
             //
             if(first_cursor->next == NULL) {
@@ -171,6 +197,7 @@ void dispatch(node* EmptyListHead,node* ReadyListHead) {
 
 
     }
+    printf("total %d, process %d, average %f",sum,processnumber,(float)sum/processnumber);
 }
 
 
